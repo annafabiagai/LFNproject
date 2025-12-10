@@ -1,6 +1,5 @@
 import markov_clustering as mc
 import networkx as nx
-from networkx.convert_matrix import to_scipy_sparse_array
 import random
 
 # number of nodes to use
@@ -14,14 +13,18 @@ positions = {i:(random.random() * 2 - 1, random.random() * 2 - 1) for i in range
 network = nx.random_geometric_graph(numnodes, 0.3, pos=positions)
 
 # then get the adjacency matrix (in sparse form)
-matrix = nx.to_scipy_sparse_matrix(network)
+A = nx.adjacency_matrix(network)
+matrix = A.toarray()   # make it dense for MCL
+
 
 # perform clustering using different inflation values from 1.5 and 2.5
 # for each clustering run, calculate the modularity
 for inflation in [i / 10 for i in range(15, 26)]:
     result = mc.run_mcl(matrix, inflation=inflation)
     clusters = mc.get_clusters(result)
-    Q = mc.modularity(matrix=result, clusters=clusters)
+    # convert clusters for NetworkX
+    community_sets = [set(c) for c in clusters]
+    Q = nx.algorithms.community.modularity(network, community_sets)
     print("inflation:", inflation, "modularity:", Q)
 
 # cluster using the optimized cluster inflation value
