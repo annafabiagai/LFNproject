@@ -47,20 +47,53 @@ Using k-NN to reconstruct the graph has a strong effect on the graph connectivit
 - how large are the datasets that you will consider?
 
 \section*{Dataset}
-In the previous report, we lack in describing in detailed the dataset that we will imply. In particular, for this project we will use LFR (Lancichinetti–Fortunato–Radicchi) benchmark dataset to generate a synthetic network. We decided to rely on a synthetic benchmark since it provides a fair baseline that allows us to analyze how different parameters, conditions and implementation choices affect the quality of the community detection algorithms implied.
+In the previous report, we lack in describing in detailed the dataset that we will imply. In particular, for this project we will use LFR (Lancichinetti–Fortunato–Radicchi) benchmark dataset to generate a
+synthetic network used to evaluate the community detection algorithms used in our experiments. We decided to rely on a synthetic benchmark since it provides a groundtruth and a 
+fair baseline that allows us to analyze how different parameters, conditions and implementation choices affect the quality of the detected community.
 
 Indeed, the LFR benchmark offers a high degree of flexibility, as several hyperparameters can be tuned to generate networks with different structural properties.
-For instance, we will focus on the μ parameter that controls how strongly communities are defined: low value μ defines well-separated communities whereas high level of μ weak or overlapping communities.
+For instance, we will focus on the μ parameter that controls how strongly communities are defined: low value μ defines well-separated communities and high level of μ weak or overlapping communities.
 
-This parameter is crucial for our experiments because it reflects the performance limits of MCL and Leiden algorithms. Indeed, as reported in literature, MCL is known to perform poorly when communities are not well defined. For this reason, we investigate whether the use of node embeddings can improve the quality of the detected communities for both MCL and Leiden under increasing values of μ.
+This parameter is crucial for our experiments because it reflects the performance limits of MCL and Leiden algorithms. 
+As reported in the literature,MCL is known to perform poorly when communities are not well defined. For this reason, we investigate whether the use of node embeddings 
+can improve the quality of the detected communities for both MCL and Leiden under different values of μ: from 0.2 and 0.3.
 
-Moreover, according to other studies, a common choice for the network size in LFR-based evaluations is around 1000 nodes. Thus we will conduct our experiments on two kind of graphs: 500 nodes based graph and a 1000 nodes graph. This allows us to check how the combination of the different value of μ and graph size affect the quality of community detection performance, and how embeddings helps the algorithms to perform a better clustering.
-
+Moreover, according to other studies, a common choice for the network size in LFR-based evaluations is around 1000 nodes. Thus we will conduct our experiments on two kind of graphs: 500 nodes 
+based graph and a 1000 nodes graph.
+This allows us to check how the combination of the different value of μ and graph size affect the quality of community detection performance, and how
+embeddings helps the algorithms to perform a better clustering.
 
 
 
 \section*{Intended experiments}
+As mentioned above, our aim is to explore how embeddings enhance MCL and Leiden under harsh networks condition for them to work nicely. 
+Indeed we will manipulate the size N of the graph and the μ parameter to create different networking scenarios and check how the algorithms behave in the presence and not of embeddings.
+We will perform the following steps, considering two different value for N and for μ:
+First step explore a confortable scenario of network graph, where the number of nodes is not high and the communities are not strongly overlapping: N=500 and μ=0.2
+- MCL without embeddings and with embeddings.
+- Leiden without embeddings and with embeddings.
 
+Then we will increase the value of N to 1000 and leaving μ=0.2; and computing:
+- MCL without embeddings and with embeddings.
+- Leiden without embeddings and with embeddings.
+
+In this step we expect to see very different results from the previous one since MCL would start to provide worst results as N increases.
+
+Eventually we perform the last experiment: N=1000 and increasing the overlap of the communities to μ=0.3; and computing:
+- MCL without embeddings and with embeddings.
+- Leiden without embeddings and with embeddings.
+
+Below we provide a breif description for each algorithm:
+-MCL
+
+
+
+
+-Leiden:
+The Leiden method is a community detection algorithm that optimizes modularity and through iteratively steps performs local node movements, 
+refines the partition to remove disconnected components, and aggregates the graph into a smaller network.
+However, like other modularity-based methods, Leiden suffers from the resolution limit, which may prevent the detection of very small communities, 
+and its performance can degrade in networks with weak or highly overlapping community structures. 
 
 
 
@@ -75,4 +108,5 @@ Moreover, according to other studies, a common choice for the network size in LF
 
 
 \end{document}
+
 
