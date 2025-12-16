@@ -46,6 +46,18 @@ Using k-NN to reconstruct the graph has a strong effect on the graph connectivit
 
 - how large are the datasets that you will consider?
 
+\section*{Dataset}
+In the previous report, we lack in describing in detailed the dataset that we will imply. In particular, for this project we will use LFR (Lancichinetti–Fortunato–Radicchi) benchmark dataset to generate a synthetic network. We decided to rely on a synthetic benchmark since it provides a fair baseline that allows us to analyze how different parameters, conditions and implementation choices affect the quality of the community detection algorithms implied.
+
+Indeed, the LFR benchmark offers a high degree of flexibility, as several hyperparameters can be tuned to generate networks with different structural properties.
+For instance, we will focus on the μ parameter that controls how strongly communities are defined: low value μ defines well-separated communities whereas high level of μ weak or overlapping communities.
+
+This parameter is crucial for our experiments because it reflects the performance limits of MCL and Leiden algorithms. Indeed, as reported in literature, MCL is known to perform poorly when communities are not well defined. For this reason, we investigate whether the use of node embeddings can improve the quality of the detected communities for both MCL and Leiden under increasing values of μ.
+
+Moreover, according to other studies, a common choice for the network size in LFR-based evaluations is around 1000 nodes. Thus we will conduct our experiments on two kind of graphs: 500 nodes based graph and a 1000 nodes graph. This allows us to check how the combination of the different value of μ and graph size affect the quality of community detection performance, and how embeddings helps the algorithms to perform a better clustering.
+
+
+
 
 \section*{Intended experiments}
 
@@ -63,3 +75,4 @@ Using k-NN to reconstruct the graph has a strong effect on the graph connectivit
 
 
 \end{document}
+
