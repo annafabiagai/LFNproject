@@ -1,0 +1,65 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{natbib}
+\usepackage[margin=1in]{geometry}
+
+\title{Community Detection: Topological vs. Embedding-Based Approaches Using the Markov Cluster Algorithm}
+\author{Annafabia Gai, Vincenzo Sammartino, Riccardo Zanatta}
+\date{18 December 2025}
+
+\begin{document}
+
+\maketitle
+
+\section{What changed from the proposal}
+
+\subsection{LINE embedding}
+On the proposal we didn't discuss the method to reconstruct the graph from the embeddings. On this report (see following section) we defined in detail the methods for reconstruction and the intended experiments.
+
+\subsection{Graph reconstruction}
+On the proposal we stated that we intended on doing tests both on LINE and node2vec embeddings. It has been proven that the node2vec embeddings consistently outperform LINE embeddings on numerous tasks and in real applications are more commonly used. Given node2vec's superiority in comparison to LINE and the unavailability of LINE methods on updated Python libraries, we decided to drop LINE embeddings and work on the project only using node2vec.
+
+
+\section{Addressing questions and requests}
+
+\subsection{Graph reconstruction}
+Starting from an input graph, we obtained node embeddings using the node2vec method. Next, employing the decoder component of the graph representation learning framework, we reconstructed the graph topology. To do so, we calculated pairwise similarities between embedding vectors and reconstructed the graph using k-Nearest Neighbor (k-NN). For every node $i$, the algorithm identifies the top $k$ most similar nodes (based on the similarity measure of choice) and creates edges from $i$ to them. Finally, we added on the reconstructed graph as edge weights the computed similarity between the nodes.
+This methodology aligns with the framework proposed in a previous study (Yip et al., 2023), which assesses embedding quality explicitly through graph reconstruction. While RESTORE utilizes global ranking metrics (Precision@k), it relies on pairwise similarity scores derived from the embeddings specifically utilizing normalized dot products to measure node proximity. Similarly, large-scale industry recommender systems (e.g., Alibaba, PinSage) and similarity search infrastructure (e.g., Faiss) rely on retrieving nearest neighbors in vector space to approximate graph edges, validating k-NN as a robust standard for reconstruction.
+Although node2vec implicitly optimizes a dot product, given that the method is based on Skip-Gram, the resulting vectors often exhibit magnitude biases correlated with node degree. As noted in the previous literature (PinSage and DeepWalking Backwards), applying normalization stabilizes the retrieval process. Therefore, we utilize cosine similarity for reconstruction, to prioritize structural alignment over magnitude, effectively normalizing the dot product to a more stable metric.
+\newline
+**cosa che mi è venuta in mente che secondo me è importante**
+Using k-NN to reconstruct the graph has a strong effect on the graph connectivity and structure, introducing inductive bias by regularizing the degree distribution. Hubs are destroyed and the density landscape is flattened, leading to the breaking of large, messy communities into smaller, more uniform ones. Assigning a set value $k$ of edges to every node makes so that nodes with high connectivity in the real graph and nodes with low connectivity appear to be more similar in comparison to the original graph, even if the edge weights will be substantially different. In the context of community detection this may lead to less efficient community identification. Therefore, since the cited literature doesn't cover community detection in specific, to further evaluate graph reconstruction techniques in our context of study, we expanded our evaluation to include alternative reconstruction strategies:
+\begin{itemize}
+    \item Dot product + k-NN: to test if preserving magnitude information via raw dot product better retains hub prominence compared to cosine similarity.
+    \item Cosine similarity + Thresholding: To test if a global similarity cutoff (allowing variable node degrees) preserves the natural density gradients better than a fixed $k$, despite the risk of disconnecting the graph.
+    \item Dot Product + Thresholding: To evaluate the reconstruction preserving both magnitude and variable degree.
+\end{itemize}
+
+-> siccome Vandin dice (giustamente) che la ricostruzione del grafo è uno step cruciale del progetto, forse è il caso di provare a testare più metodi di ricostruzione. Questo potrebbe anche 'giustificare' il drop di LINE per favorire un'esplorazione più completa della situazione. Alla fine, una volta che è scritto il codice (avendo già fatto cosine + k-NN per scrivere le altre robe ci vogliono 2 secondi) basta runnare la roba un paio di volte in più e tirare giù le metriche.   
+
+- the "Motivation" section of the report is somehow confusing. In fact, the title mentions only MCL, but then the Leiden algorithm is considered for topological clusterings.
+
+- given your overall goal, there are three additional methods that you may want to include: MCL on the original graph; Leiden on the graph obtained from embeddings (you need to build such a graph for MCL, so you can use it for Leiden as well); k-means on the embeddings (with no MCL/Leiden)
+
+- how large are the datasets that you will consider?
+
+
+\section*{Intended experiments}
+
+
+
+
+\newpage
+
+\section*{Contributions of Each Member}
+
+
+
+\section*{AI Tools Usage Declaration}
+
+
+
+\end{document}
