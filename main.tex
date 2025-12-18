@@ -1,0 +1,76 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{natbib}
+\usepackage[margin=1in]{geometry}
+
+\title{Assessing Community Detection Improvements via Node Embeddings: A Comparison of MCL and Leiden}
+\author{Annafabia Gai, Vincenzo Sammartino, Riccardo Zanatta}
+\date{18 December 2025}
+
+\begin{document}
+
+\maketitle
+
+For the mid-report proposal  our intention is to explain what we change from the original one; modifications made due to a deeper understand
+of the goal of the project. Moreover each section of the proposal presents the clarifications and answers to the questions made in the previous proposal, reguarding:
+- why we won’t use LINE embedding, how the graph is reconstruct, deeper description of the dataset, and additional information.
+
+\section{LINE embedding}
+On the first proposal we stated that we intended on doing tests both on LINE and node2vec embeddings. It has been proven that the node2vec embeddings consistently outperform LINE embeddings on numerous tasks and in real applications are more commonly used \cite{grover2016node2vec}. Given node2vec's superiority in comparison to LINE and the unavailability of LINE methods on updated Python libraries, we decided to drop LINE embeddings and work on the project only using node2vec,
+in order to focus more on how node2vec can enhance the community detection algorithm that we use.
+
+\section{Graph reconstruction}
+Starting from an input graph, we obtain node embeddings using the node2vec method. Next, employing the decoder component of the graph representation learning framework, we reconstruct the graph topology. To do so, we calculate pairwise similarities between embedding vectors and reconstruct the graph using k-Nearest Neighbor (k-NN). Finally, we add on the reconstructed graph as edge weights the computed similarity between the nodes.
+This methodology aligns with the framework proposed in a previous study \cite{yip2023restore}, which assesses embedding quality explicitly through graph reconstruction. While the authors utilize global ranking metrics (Precision@k), it relies on pairwise similarity scores derived from the embeddings specifically utilizing normalized dot products to measure node proximity. Similarly, large-scale industry recommender systems \cite{ying2018graph} \cite{wang2018billion} and similarity search infrastructure \cite{johnson2019billion} rely on retrieving nearest neighbors in vector space to approximate graph edges, validating k-NN as a robust standard for reconstruction.
+Although node2vec implicitly optimizes a dot product, given that the method is based on Skip-Gram, the resulting vectors often exhibit magnitude biases correlated with node degree. As noted in the previous literature \cite{ying2018graph} \cite{chanpuriyadeepwalking}, applying normalization stabilizes the retrieval process. Therefore, we utilize cosine similarity for reconstruction, to prioritize structural alignment over magnitude.
+Although, we need to consider that using k-NN to reconstruct the graph has a strong effect on the graph connectivity and structure, introducing inductive bias by regularizing the degree distribution. Hubs are destroyed and the density landscape is flattened, leading to the breaking of large, messy communities into smaller, more uniform ones. Assigning a set value $k$ of edges to every node makes so that nodes with high connectivity in the real graph and nodes with low connectivity appear to be more similar in comparison to the original graph, even if the edge weights will be substantially different. In the context of community detection this may lead to less efficient community identification. Therefore, since the cited literature doesn't cover community detection in specific, to further evaluate graph reconstruction techniques we expanded our evaluation to include alternative reconstruction strategies:
+\begin{itemize}
+    \item Dot product + k-NN: to test if preserving magnitude information via raw dot product better retains hub prominence compared to cosine similarity.
+    \item Cosine similarity + Thresholding: To test if a global similarity cutoff (allowing variable node degrees) preserves the natural density gradients better than a fixed $k$, despite the risk of disconnecting the graph.
+    \item Dot Product + Thresholding: To evaluate the reconstruction preserving both magnitude and variable degree.
+\end{itemize}  
+To set a value $t$ for the thresholding method we will rely on the choice made by the authors on a previous study \cite{yip2023restore}, that is $t=0.5$. As regards the value $k$ used in k-NN, we opted on using the average node degree of the original network, to preserve the density of the original graph.
+
+\section{Updated datasets}
+On the first proposal we mentioned using both synthetic datasets generated using LFR (Lancichinetti–Fortunato–Radicchi) \cite{lancichinetti2008benchmark} benchmark dataset and a real-world graph from the Stanford repositories. 
+We decided to rely only on the LFR graphs since they provide ground truth communities and a fair baseline that allow us to analyze how different network conditions affect the quality of the detected communities. In fact, the LFR benchmark offers several parameters which can be tuned to generate networks with different structural properties. 
+
+We focus on two parameters in particular: the number of nodes $N$ in the network and the mixing parameter $\mu$, which controls how strongly communities are defined. 
+This choice is motivated by known limitations of the community detection algorithms considered in this work. In particular, the performance of the Leiden algorithm (EC-Leiden) is strongly affected by the structural properties of the graph: its effectiveness decreases on graphs with well-separated communities (i.e., low $\mu$) and when the minimum node degree is very high \cite{dollmann2023graph}. 
+Conversely, the Markov Cluster Algorithm (MCL) is known to suffer on large and sparse networks, and its performance degrades as community sizes increase \cite{lancichinetti2009community}. Moreover, MCL is sensitive to the dispersion of edge weights and tends to over-fragment the graph, identifying a large number of small communities—up to the number of nodes—when applied to random or weakly structured graphs.
+
+More in detail:
+\begin{itemize}
+    \item $\mu$: a low value of $\mu$ defines well-separated communities and high level of $\mu$ weak or overlapping communities. As described in previous paragraph, we will investigate whether the use of node embeddings can improve the quality of the detected communities for both MCL and Leiden under different values: $\mu=0.2$ and $\mu=0.3$.
+    \item $N \in \{500, 1000\}$, in line with common settings for MCL evaluations, and to assess scalability effects.
+\end{itemize}
+
+This allows us to check how the combination of the different value of $\mu$ and graph size affect the quality of community detection performance, and how embeddings helps the algorithms to perform a better clustering. Also, we will consider further exploring these parameters with other tests.
+
+\section{Updated intended experiments}
+Since the removal of the LINE embedding method, the update on the used datasets and the considerations on graph reconstruction, the intended experiments of the initial report have been changed. The intended work will be as follows:
+\begin{enumerate}
+    \item We will generate LFR graphs using the different possible combinations of the $\mu$ and $N$ parameters, to simulate different network scenarios, obtaining a set \textit{I} of graphs.
+    \item We will run Leiden and MCL algorithms on the graphs in \textit{I}
+    \item We will extract node2vec embeddings on the graphs in \textit{I} and reconstruct the graphs using the four different methods previously described, obtaining a set of graphs \textit{I*}
+    \item We will run Leiden and MCL algorithms on the graphs in \textit{I*}
+    \item Finally, we will evaluate the results through performance metrics, choosen from the several ones proposed in the literature for community detection task, such as Normalized Mutual Information (NMI), Adjusted Rand Index (ARI) and F-measure defined as the armonic mean between precision and recall \cite{malliaros2013clustering}.
+\end{enumerate}
+
+\newpage
+\bibliographystyle{plain} 
+\bibliography{lfn_references}
+
+\newpage
+\section*{Contributions of Each Member}
+
+
+
+\section*{AI Tools Usage Declaration}
+
+ 
+
+\end{document}

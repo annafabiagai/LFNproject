@@ -1,0 +1,66 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{natbib}
+\usepackage[margin=1in]{geometry}
+
+\title{Assessing Community Detection Improvements via Node Embeddings: A Comparison of MCL and Leiden}
+\author{Annafabia Gai, Vincenzo Sammartino, Riccardo Zanatta}
+\date{18 December 2025}
+
+\begin{document}
+
+\maketitle
+
+This mid-term report presents the revisions made to the original proposal following a deeper analysis of the project objectives and the feedback received. We motivate the removal of the LINE embedding method, describe the adopted graph reconstruction strategies, clarify the dataset selection, and outline the updated experimental plan.
+
+\section{Embedding Method Selection}
+In the initial proposal, we planned to evaluate both LINE and node2vec embeddings. However, node2vec has been shown to consistently outperform LINE across a wide range of tasks and is more widely adopted in practice \cite{grover2016node2vec}. Additionally, reliable implementations of LINE are no longer available in updated Python libraries. For these reasons, we decided to focus exclusively on node2vec, allowing a more in-depth analysis of its impact on community detection performance.
+
+\section{Graph Reconstruction}
+Starting from an input graph, node embeddings are computed using node2vec. The graph topology is then reconstructed by computing pairwise similarities between embedding vectors and creating edges based on similarity scores. Our primary reconstruction method is $k$-Nearest Neighbors (k-NN), where edges are weighted by node similarity.
+
+This approach follows the graph reconstruction framework proposed in \cite{yip2023restore}, which evaluates embedding quality through topology recovery. Similar strategies are also employed in large-scale recommender systems and similarity search infrastructures \cite{ying2018graph,wang2018billion,johnson2019billion}. Since node2vec is based on a Skip-Gram objective, the resulting embeddings may exhibit magnitude biases correlated with node degree. As noted in previous work \cite{ying2018graph,chanpuriyadeepwalking}, normalization improves stability; therefore, cosine similarity is adopted to prioritize structural similarity over vector magnitude.
+
+However, k-NN reconstruction introduces an inductive bias by regularizing node degrees, potentially flattening the graph structure and fragmenting large communities. To assess the impact of reconstruction choices on community detection, we evaluate four strategies:
+\begin{itemize}
+    \item Cosine similarity + k-NN (baseline)
+    \item Dot product + k-NN
+    \item Cosine similarity + thresholding
+    \item Dot product + thresholding
+\end{itemize}
+For threshold-based reconstruction, we use $t = 0.5$ as suggested in \cite{yip2023restore}. For k-NN, we set $k$ equal to the average degree of the original graph to approximately preserve graph density.
+
+\section{Datasets and Parameters}
+We initially considered both synthetic and real-world datasets. We ultimately chose to rely exclusively on LFR (Lancichinetti–Fortunato–Radicchi) benchmark graphs \cite{lancichinetti2008benchmark}, as they provide ground-truth communities and allow precise control over structural properties.
+
+We focus on two parameters: the number of nodes $N$ and the mixing parameter $\mu$. This choice is motivated by known limitations of the community detection algorithms under study. The performance of Leiden (EC-Leiden) is sensitive to graph structure and tends to degrade on graphs with strongly separated communities (low $\mu$) or very high minimum degree \cite{dollmann2023graph}. In contrast, the Markov Cluster Algorithm (MCL) is known to struggle on large and sparse networks, with performance deteriorating as community sizes increase \cite{lancichinetti2009community}. MCL is also sensitive to edge-weight dispersion and tends to over-fragment random or weakly structured graphs.
+
+Specifically, we consider:
+\begin{itemize}
+    \item $\mu \in \{0.2, 0.3\}$, to analyze performance under well-defined and weaker community structures.
+    \item $N \in \{500, 1000\}$, in line with common settings for MCL evaluations, and to assess scalability effects.
+\end{itemize}
+
+These settings allow us to systematically evaluate whether embedding-based graph reconstruction mitigates the structural weaknesses of both algorithms.
+
+\section{Experimental Plan}
+The updated experimental workflow is as follows:
+\begin{enumerate}
+    \item Generate LFR graphs for all combinations of $\mu$ and $N$, obtaining a set of original graphs $\mathcal{I}$.
+    \item Apply Leiden and MCL directly to graphs in $\mathcal{I}$.
+    \item Compute node2vec embeddings and reconstruct each graph using the four reconstruction strategies, producing a set $\mathcal{I}^*$.
+    \item Apply Leiden and MCL to the reconstructed graphs in $\mathcal{I}^*$.
+    \item Evaluate performance using standard community detection metrics, including Normalized Mutual Information (NMI), Adjusted Rand Index (ARI), and F-measure \cite{malliaros2013clustering}.
+\end{enumerate}
+
+\bibliographystyle{plain}
+\bibliography{lfn_references}
+
+\section*{Contributions of Each Member}
+
+\section*{AI Tools Usage Declaration}
+
+\end{document}
